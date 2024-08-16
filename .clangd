@@ -1,0 +1,5 @@
+CompileFlags:
+  Compiler: /usr/bin/gcc
+Diagnostics:
+  Suppress: 'builtin_definition'
+  # https://github.com/clangd/clangd/issues/1203

@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/glprogram.dir/src/glfw_callbacks.c.o CMakeFiles/glprogram.dir/src/logger.c.o CMakeFiles/glprogram.dir/src/main.c.o CMakeFiles/glprogram.dir/src/vchunk.c.o -o glprogram  lib/glfw/src/libglfw3.a lib/glad/libglad.a /usr/lib/x86_64-linux-gnu/librt.a -lm -ldl 
