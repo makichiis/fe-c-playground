@@ -1,5 +1,7 @@
 #!/bin/sh 
 
+# TODO: Rewrite this. The code sucks and is spaghetti.
+
 project_name='glprogram'
 builddir_default='./build'
 if [ -z ${builddir+x} ]; then 
@@ -7,55 +9,82 @@ if [ -z ${builddir+x} ]; then
 fi 
 # https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
 if [ -z ${cpu_count+x} ]; then 
-    cpu_count=$(lscpu | grep -E '^CPU\(' | tr -s ' ' | cut -d ' ' -f2 | awk '{print $1/2}')
+    cpu_count=$(lscpu | grep -E '^CPU\(' | tr -s ' ' | cut -d ' ' -f2 | awk '{print $1}')
 fi 
 # https://gist.github.com/waylan/4080362
-run_configure() {
     # https://stackoverflow.com/questions/70880484/cmake-print-root-project-name-using-cmake-commandline
-    if [ "$1" = "release" ]; then
-        local MORE_ARGS=-DDEBUG=OFF
-    else 
-        local MORE_ARGS=-DDEBUG=ON 
-    fi 
-    command cmake -DPROJECT_NAME=$project_name . -B $builddir $MORE_ARGS $@ 
-}
 
 # always uses half of present CPUs to perform compilation. Override 
-run_build() {
-    command cmake -DPROJECT_NAME=$project_name . -B $builddir/release -DDEBUG=OFF  
-    command cmake --build build/release $@
+run_build_release() {
+    command cmake -DPROJECT_NAME=$project_name . -B "$builddir/release" -DDEBUG=OFF  
+    command cmake --build "$builddir/release"
 }
 
 run_release() {
-    run_build
+    run_build_release
     command ./build/release/$project_name
 }
 
 run_clean() {
-    if [ ! -d "$builddir/CMakeFiles" ] && [ ! -d "$builddir/release/CMakeFiles" ]; then 
+    if [ ! -d "$builddir/$1/CMakeFiles" ]; then 
         echo "This folder is not configured by CMake. Please verify that this folder is your actual build folder, and delete it via your directory/file removal command (usually \`rm\`)" 
     else 
-        command rm -r $builddir
+        command rm -r "$builddir/$1"
     fi 
 }
 
-# maybe integrate this with the configure subcmd
+
+run_configure_debug() {
+    command cmake -DPROJECT_NAME=$project_name . -B "$builddir/debug" -DDEBUG=ON
+}
+
+run_build_debug() {
+    command cmake --build $builddir/debug -- -j $cpu_count
+}
+
 run_debug() {
+    run_configure_debug 
+    run_build_debug \
+    && "$builddir/debug/$project_name"
+}
+
+
+run_configure_valgrind() {
+    command cmake -DPROJECT_NAME=$project_name . -B $builddir/valgrind -DDEBUG=ON -DVALGRIND=ON 
+}
+
+run_build_valgrind() {
+    command cmake --build "$builddir/valgrind" -- -j $cpu_count 
+}
+
+run_valgrind() {
+    run_configure_valgrind 
+    run_build_valgrind \
+    && valgrind $@ "$builddir/valgrind/$project_name"
+}
+
+
+run_configure_clangd() {
+    command cmake -DPROJECT_NAME=$project_name . -B $builddir -DDEBUG=ON 
+}
+
+run_configure() {
+    run_configure_clangd 
+    run_configure_valgrind 
+    run_configure_debug 
+}
+
+run_build_all() {
     run_configure 
-    command cmake -DPROJECT_NAME=$project_name -DDEBUG=ON . -B $builddir $@
-    command gdb 
+    run_build_release 
+    run_build_debug 
+    run_build_valgrind 
 }
 
+# quick and dirty base command to get a demo running 
 run() {
-    if [ ! -d "$builddir/CMakeFiles" ]; then 
-        run_configure 
-    fi
-    command cmake --build $builddir -- -j $cpu_count $@ \
-        && ./$builddir/$project_name $@
-}
-
-run_with() {
-    run $@ 
+    run_configure_clangd
+    run_debug 
 }
 
 subcmd=$1 
@@ -81,7 +110,8 @@ case $subcmd in
         run $@ 
         ;;    
     *)
-    shift 
+    shift
+    SUBCMD=${subcmd}
     run_${subcmd} $@
 esac 
 

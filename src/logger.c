@@ -49,26 +49,13 @@ void fe_log(enum LogLevel level, FILE* out, const char* fmt, ...) {
         exit(FE_ERR_LOGGER_FAIL);
     }
 
-    size_t localtime_strlen = res;
-    size_t logprefix_strlen = strlen(logging_prefix);
-
-    char* log_fmt = malloc(strlen(fmt) 
-                           + logprefix_strlen 
-                           + localtime_strlen 
-                           + 1);
-
-    strcpy(log_fmt, localtime_buf);
-    strcpy(log_fmt + localtime_strlen, logging_prefix);
-    strcpy(log_fmt + localtime_strlen + logprefix_strlen, fmt);
+    fprintf(out, "%s%s", localtime_buf, logging_prefix);
 
     va_list args;
     va_start(args, fmt);
-
-    vfprintf(out, log_fmt, args);
+    vfprintf(out, fmt, args);
     va_end(args);
 
-    fprintf(out, ANSI_COLOR_RESET);
-    fprintf(out, "\n");
-    free(log_fmt);
+    fprintf(out, ANSI_COLOR_RESET "\n");
 }
 

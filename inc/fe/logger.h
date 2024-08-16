@@ -31,7 +31,7 @@ void fe_log(enum LogLevel level, FILE* out, const char* fmt, ...);
 
 #ifdef DEBUG
     #define FE_DEBUG(...)  fe_log(LOG_LEVEL_DEBUG, stdout, __VA_ARGS__);\
-    printf(" %sCalled in \"%s\" at [L:%d]\n", ANSI_MAG, __FILE__, __LINE__)
+    printf(" %sCalled in \"%s\" at [L:%d]\n" ANSI_RESET, ANSI_MAG, __FILE__, __LINE__)
 #else
     #define FE_DEBUG(...) 
 #endif 

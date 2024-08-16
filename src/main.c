@@ -233,7 +233,7 @@ int main(int argc, const char** argv) {
     glBindVertexArray(0);
 
     struct Chunk base_chunk = Chunk__create(
-        (struct Size3D){.x = 1, .y = 1, .z = 1});
+        (struct Size3D){.x = 64, .y = 64, .z = 64});
     FE_DEBUG("Address of voxel data: 0x%8X, size: %lu", base_chunk.voxels, 
              sizeof (struct Voxel) * base_chunk.size.x 
              * base_chunk.size.y * base_chunk.size.z);

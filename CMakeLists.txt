@@ -21,7 +21,14 @@ message("Target directory: ${CMAKE_CURRENT_BINARY_DIR}")
 # https://cmake.org/cmake/help/book/mastering-cmake/chapter/Testing%20With%20CMake%20and%20CTest.html
 # ^-- for testing via cmake 
 if(DEBUG)
-  add_compile_definitions(DEBUG)
+  add_compile_definitions(DEBUG _GLIBCXX_DEBUG)
+  if(VALGRIND)
+    add_compile_options(-g -O0)
+    message("Configuring with valgrind...")
+  else()
+    add_compile_options(-g -O0)
+    add_link_options() # was originally using libasan but did away with it
+  endif(VALGRIND)
   set(WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/")
 else()
   add_compile_options(-Werror -O3 -Os -Wall)
