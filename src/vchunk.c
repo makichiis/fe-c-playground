@@ -40,7 +40,7 @@ struct Size3D Chunk_get_iaspos(struct Chunk* chunk, size_t idx) {
     return (struct Size3D){ ix, iy, iz };
 }
 
-struct ChunkMesh__float_verts_t {
+struct vc__float_verts_t {
     size_t cap;
     size_t len;
     float* data;
@@ -64,9 +64,9 @@ struct ChunkMesh__float_verts_t {
 
 // TODO: Make way to pass relational chunks/faces to perform culling of 
 // outwardly-facing but still-hidden faces. Future concern.
-struct ChunkMesh__float_verts_t ChunkMesh__create_verts_dumb_naive(
+struct vc__float_verts_t vc__create_verts_dumb_naive(
         struct Chunk* chunk) {
-    struct ChunkMesh__float_verts_t verts;
+    struct vc__float_verts_t verts;
 
     verts.cap = chunk->size.x * chunk->size.y * chunk->size.z * VERTS_PER_VOXEL;
     verts.len = 0ULL;
@@ -92,7 +92,7 @@ struct ChunkMesh__float_verts_t ChunkMesh__create_verts_dumb_naive(
     return verts;
 }
 
-void ChunkMesh__float_verts_destroy(struct ChunkMesh__float_verts_t* verts) {
+void vc__float_verts_destroy(struct vc__float_verts_t* verts) {
     free(verts->data);
 }
 
@@ -102,12 +102,12 @@ void ChunkMesh__float_verts_destroy(struct ChunkMesh__float_verts_t* verts) {
 struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     struct ChunkMesh mesh = {};
 
-    struct ChunkMesh__float_verts_t verts = ChunkMesh__create_verts_dumb_naive(chunk);
+    struct vc__float_verts_t verts = vc__create_verts_dumb_naive(chunk);
 
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
 
-    ChunkMesh__float_verts_destroy(&verts);
+    vc__float_verts_destroy(&verts);
     return mesh;
 }
 

@@ -67,7 +67,7 @@ int main(int argc, const char** argv) {
     char cwd[PATH_MAX];
 
     if (!getcwd(cwd, sizeof cwd)) {
-    FE_FATAL("Could not get CWD. Is this running on Linux at all?");
+        FE_FATAL("Could not get CWD. Is this running on Linux at all?");
         return FE_ERR_INFALLIBLE;
     }
 
