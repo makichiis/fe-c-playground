@@ -79,6 +79,8 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
     }
     FE_DEBUG("%ld bytes allocated for chunk.", verts.cap * sizeof *verts.data); 
 
+    // this is probably an awful way to index. i havent decided how to do the 
+    // mapping. I hope this is correct though ..
     size_t voxel_len = chunk->size.x * chunk->size.y * chunk->size.z;
     for (size_t i = 0; i < voxel_len; ++i) {
         if (!chunk->voxels[i].enabled)
@@ -92,7 +94,7 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
     return verts;
 }
 
-void vc__float_verts_destroy(struct vc__float_verts_t* verts) {
+void vc__float_verts_t_destroy(struct vc__float_verts_t* verts) {
     free(verts->data);
 }
 
@@ -107,7 +109,7 @@ struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
 
-    vc__float_verts_destroy(&verts);
+    vc__float_verts_t_destroy(&verts);
     return mesh;
 }
 

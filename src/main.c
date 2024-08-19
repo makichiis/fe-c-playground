@@ -20,6 +20,7 @@
 #include <fe/logger.h>
 #include <fe/err.h>
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -247,10 +248,25 @@ int main(int argc, const char** argv) {
 
     // initialize camera position matrix 
     
-    mat4 view;
-    glm_mat4_identity(view);
-    glm_perspective(glm_rad(60.0f), 400.0/400.0, 1, 100, view);
+    mat4 projection;
+    glm_mat4_identity(projection);
+    glm_perspective(glm_rad(60.0f), 400.0/400.0, 1, 100, projection);
 
+    vec3 camera_pos = { 0.0f, 0.0f, 3.0f };
+    vec3 camera_target = { 0.0f, 0.0f, 0.0f };
+
+    vec3 camera_direction;
+    glm_vec3_sub(camera_pos, camera_target, camera_direction);
+    glm_vec3_normalize(camera_direction);
+
+    vec3 up = { 0.0f, 1.0f, 0.0f };
+    vec3 camera_right;
+    glm_cross(up, camera_direction, camera_right);
+    glm_normalize(camera_right);
+
+    vec3 camera_up;
+    glm_cross(camera_direction, camera_right, camera_up);
+    
     glUseProgram(program);
     GLuint transform_uloc = glGetUniformLocation(program, "transform");
     glUseProgram(0);
@@ -261,9 +277,23 @@ int main(int argc, const char** argv) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
+        
+        float radius = 10.0f;
+        float cam_x = sin(glfwGetTime()) * radius;
+        float cam_z = cos(glfwGetTime()) * radius;
+        vec3 eye = { cam_x, 0.0f, cam_z };
+        vec3 center = {};
+
+        mat4 view;
+        glm_mat4_identity(view);
+        glm_lookat(eye, center, up, view);
+
+        mat4 trans;
+        glm_mat4_identity(trans);
+        glm_mat4_mul(projection, view, trans);
 
         glUseProgram(program);
-        glUniformMatrix4fv(transform_uloc, 1, GL_FALSE, (const GLfloat*)view);
+        glUniformMatrix4fv(transform_uloc, 1, GL_FALSE, (const GLfloat*)trans);
 
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
