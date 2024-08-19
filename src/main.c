@@ -278,7 +278,7 @@ int main(int argc, const char** argv) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
         
-        float radius = 10.0f;
+        float radius = 5.0f;
         float cam_x = sin(glfwGetTime()) * radius;
         float cam_z = cos(glfwGetTime()) * radius;
         vec3 eye = { cam_x, 0.0f, cam_z };
