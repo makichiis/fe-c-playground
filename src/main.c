@@ -246,6 +246,8 @@ int main(int argc, const char** argv) {
     struct Size3D p = Chunk_get_iaspos(&test, 30);
     FE_DEBUG("idx 30 for chunk (4, 4, 2) is in pos %u %u %u\n", p.x, p.y, p.z);
 
+    struct ChunkMesh test_mesh = ChunkMesh__from_chunk(&test);
+
     // initialize camera position matrix 
     
     mat4 projection;
@@ -271,18 +273,36 @@ int main(int argc, const char** argv) {
     GLuint u_transform = glGetUniformLocation(program, "u_transform");
     GLuint u_resolution = glGetUniformLocation(program, "u_resolution");
     GLuint u_time = glGetUniformLocation(program, "u_time");
+    glUniform2f(u_resolution, 400.0f, 400.0f);
+    glUniform1f(u_time, 0.0f);
     glUseProgram(0);
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
         
+        static float rot = 0.0f;
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+            rot -= 0.0001f;
+        } 
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+            rot += 0.0001f;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        else if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         float radius = 3.0f;
-        float cam_x = sin(glfwGetTime()) * radius;
-        float cam_z = cos(glfwGetTime()) * radius;
+        float cam_x = sin(rot) * radius;
+        float cam_z = cos(rot) * radius;
         vec3 eye = { cam_x, 0.0f, cam_z };
         vec3 center = {};
 
@@ -296,11 +316,13 @@ int main(int argc, const char** argv) {
 
         glUseProgram(program);
         glUniformMatrix4fv(u_transform, 1, GL_FALSE, (const GLfloat*)trans);
-        glUniform2f(u_resolution, 400.0f, 400.0f);
-        glUniform1f(u_time, glfwGetTime());
+        //glUniform2f(u_resolution, 400.0f, 400.0f);
+        //glUniform1f(u_time, glfwGetTime());
 
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(test_mesh.vao);
+        glDrawArrays(GL_TRIANGLES, 0, 6); // hardcoded
+        //glBindVertexArray(vao);
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glfwPollEvents();
         glfwSwapBuffers(window);

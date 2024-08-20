@@ -2,6 +2,8 @@
 #include <fe/logger.h>
 #include <fe/err.h>
 
+#include <string.h>
+
 struct Chunk Chunk__create(struct Size3D chunk_size) {
     struct Chunk chunk = {.scale = 1.0, .size = chunk_size};
 
@@ -62,6 +64,24 @@ struct vc__float_verts_t {
     * POLYGONS_PER_FACE\
     * FACES_PER_VOXEL)
 
+struct vc__mesh_vertex {
+    float x;
+    float y;
+    float z;
+} __attribute__((packed)); // we are copying bytes directly 
+
+// CLOCKWISE RENDERING ALWAYS
+static struct vc__mesh_vertex vc_vverts[] = {
+    { 0.f, 1.f, 0.f },
+    { 1.f, 1.f, 0.f },
+    { 1.f, 0.f, 0.f },
+    { 1.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 1.f, 0.f },
+
+
+};
+
 // TODO: Make way to pass relational chunks/faces to perform culling of 
 // outwardly-facing but still-hidden faces. Future concern.
 struct vc__float_verts_t vc__create_verts_dumb_naive(
@@ -71,6 +91,8 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
     verts.cap = chunk->size.x * chunk->size.y * chunk->size.z * VERTS_PER_VOXEL;
     verts.len = 0ULL;
     verts.data = calloc(verts.cap, sizeof *verts.data);
+
+    float scale = (float)chunk->scale;
 
     if (!verts.data) {
         FE_FATAL("Failed to allocate %ld bytes for vertices. Exiting.", 
@@ -88,13 +110,18 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
 
         struct Size3D pos = Chunk_get_iaspos(chunk, i);
 
-        
+        // vert = (pos_3v * scale + vpos_3v)
+        // "local voxel pos times scale plus local chunk pos"
+
+        // TODO: Multiply by scale, shift by local chunk coord
+        memcpy(verts.data + verts.len, vc_vverts, sizeof vc_vverts);
+        verts.len += 18;
     }
 
     return verts;
 }
 
-void vc__float_verts_t_destroy(struct vc__float_verts_t* verts) {
+void vc__float_verts_destroy(struct vc__float_verts_t* verts) {
     free(verts->data);
 }
 
@@ -109,7 +136,18 @@ struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);
 
-    vc__float_verts_t_destroy(&verts);
+    glBindVertexArray(mesh.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, verts.len * sizeof (float), 
+                 verts.data, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof (float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    vc__float_verts_destroy(&verts);
     return mesh;
 }
 
