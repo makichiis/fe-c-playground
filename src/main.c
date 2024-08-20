@@ -268,7 +268,9 @@ int main(int argc, const char** argv) {
     glm_cross(camera_direction, camera_right, camera_up);
     
     glUseProgram(program);
-    GLuint transform_uloc = glGetUniformLocation(program, "transform");
+    GLuint u_transform = glGetUniformLocation(program, "u_transform");
+    GLuint u_resolution = glGetUniformLocation(program, "u_resolution");
+    GLuint u_time = glGetUniformLocation(program, "u_time");
     glUseProgram(0);
 
     glEnable(GL_DEPTH_TEST);
@@ -278,7 +280,7 @@ int main(int argc, const char** argv) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
         
-        float radius = 5.0f;
+        float radius = 3.0f;
         float cam_x = sin(glfwGetTime()) * radius;
         float cam_z = cos(glfwGetTime()) * radius;
         vec3 eye = { cam_x, 0.0f, cam_z };
@@ -293,7 +295,9 @@ int main(int argc, const char** argv) {
         glm_mat4_mul(projection, view, trans);
 
         glUseProgram(program);
-        glUniformMatrix4fv(transform_uloc, 1, GL_FALSE, (const GLfloat*)trans);
+        glUniformMatrix4fv(u_transform, 1, GL_FALSE, (const GLfloat*)trans);
+        glUniform2f(u_resolution, 400.0f, 400.0f);
+        glUniform1f(u_time, glfwGetTime());
 
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
