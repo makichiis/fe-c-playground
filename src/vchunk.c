@@ -92,7 +92,7 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
     verts.len = 0ULL;
     verts.data = calloc(verts.cap, sizeof *verts.data);
 
-    float scale = (float)chunk->scale;
+    //float scale = (float)chunk->scale;
 
     if (!verts.data) {
         FE_FATAL("Failed to allocate %ld bytes for vertices. Exiting.", 
@@ -108,7 +108,7 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
         if (!chunk->voxels[i].enabled)
             continue;
 
-        struct Size3D pos = Chunk_get_iaspos(chunk, i);
+        //struct Size3D pos = Chunk_get_iaspos(chunk, i);
 
         // vert = (pos_3v * scale + vpos_3v)
         // "local voxel pos times scale plus local chunk pos"

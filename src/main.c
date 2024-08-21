@@ -233,18 +233,18 @@ int main(int argc, const char** argv) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    struct Chunk base_chunk = Chunk__create(
-        (struct Size3D){.x = 64, .y = 64, .z = 64});
-    FE_DEBUG("Address of voxel data: 0x%8X, size: %lu", base_chunk.voxels, 
-             sizeof (struct Voxel) * base_chunk.size.x 
-             * base_chunk.size.y * base_chunk.size.z);
+    //struct Chunk base_chunk = Chunk__create(
+    //    (struct Size3D){.x = 64, .y = 64, .z = 64});
+    //FE_DEBUG("Address of voxel data: 0x%8X, size: %lu", base_chunk.voxels, 
+    //         sizeof (struct Voxel) * base_chunk.size.x 
+    //         * base_chunk.size.y * base_chunk.size.z);
 
-    base_chunk.scale = 0.25;
-    struct ChunkMesh base_mesh = ChunkMesh__from_chunk(&base_chunk);
+    //base_chunk.scale = 0.25;
+    //struct ChunkMesh base_mesh = ChunkMesh__from_chunk(&base_chunk);
 
     struct Chunk test = Chunk__create((struct Size3D){ 4, 4, 2 });
-    struct Size3D p = Chunk_get_iaspos(&test, 30);
-    FE_DEBUG("idx 30 for chunk (4, 4, 2) is in pos %u %u %u\n", p.x, p.y, p.z);
+    //struct Size3D p = Chunk_get_iaspos(&test, 30);
+    //FE_DEBUG("idx 30 for chunk (4, 4, 2) is in pos %u %u %u\n", p.x, p.y, p.z);
 
     struct ChunkMesh test_mesh = ChunkMesh__from_chunk(&test);
 
@@ -328,7 +328,7 @@ int main(int argc, const char** argv) {
         glfwSwapBuffers(window);
     }
 
-    Chunk_destroy(&base_chunk);
+    //Chunk_destroy(&base_chunk);
     Chunk_destroy(&test);
     glfwTerminate();
 }
