@@ -58,6 +58,14 @@ int verify_working_directory();
 */
 void* get_resource(const char* path, void** data_p, size_t* size);
 
+static mat4 projection;
+
+void glfw_framebuffer_size_callback(GLFWwindow* window, int x, int y) {
+    glViewport(0, 0, x, y);
+    glm_mat4_identity(projection);
+    glm_perspective(glm_rad(60.0f), (float)x/(float)y, 1, 100, projection);
+}
+
 // TODO: Re-research event subscriber pattern for glfw et al. event handling 
 // TODO: Rewrite build script that bootstraps cmake configurations 
 // TODO: Logger colors ! https://gist.github.com/RabaDabaDoba/145049536f815903c79944599c6f952a
@@ -116,6 +124,7 @@ int main(int argc, const char** argv) {
     // to base callback (it isnt that deep, just call them in the 
     // base callback)
     glfwSetKeyCallback(window, fe_base_glfw_key_callback);
+    glfwSetFramebufferSizeCallback(window, glfw_framebuffer_size_callback);
 
     if (!gladLoadGL(glfwGetProcAddress)) {
         FE_FATAL("GLAD failed to initialize.");
@@ -243,6 +252,13 @@ int main(int argc, const char** argv) {
     //struct ChunkMesh base_mesh = ChunkMesh__from_chunk(&base_chunk);
 
     struct Chunk test = Chunk__create((struct Size3D){ 4, 4, 2 });
+    test.scale = 0.125f;
+    test.voxels[0].enabled = true;
+    test.voxels[1].enabled = true;
+    test.voxels[2].enabled = true;
+    test.voxels[3].enabled = true;
+    test.voxels[4].enabled = true;
+    test.voxels[20].enabled = true;
     //struct Size3D p = Chunk_get_iaspos(&test, 30);
     //FE_DEBUG("idx 30 for chunk (4, 4, 2) is in pos %u %u %u\n", p.x, p.y, p.z);
 
@@ -250,7 +266,6 @@ int main(int argc, const char** argv) {
 
     // initialize camera position matrix 
     
-    mat4 projection;
     glm_mat4_identity(projection);
     glm_perspective(glm_rad(60.0f), 400.0/400.0, 1, 100, projection);
 
@@ -273,14 +288,21 @@ int main(int argc, const char** argv) {
     GLuint u_transform = glGetUniformLocation(program, "u_transform");
     GLuint u_resolution = glGetUniformLocation(program, "u_resolution");
     GLuint u_time = glGetUniformLocation(program, "u_time");
+    GLuint u_lightpos = glGetUniformLocation(program, "u_lightpos");
     glUniform2f(u_resolution, 400.0f, 400.0f);
     glUniform1f(u_time, 0.0f);
     glUseProgram(0);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    int enabled = 0;
+    size_t size = test.size.x * test.size.y * test.size.z;
+    for (size_t i = 0; i < size; ++i) {
+        enabled += test.voxels[i].enabled ? 1 : 0;
+    }
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -289,10 +311,18 @@ int main(int argc, const char** argv) {
         
         static float rot = 0.0f;
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            rot -= 0.0001f;
+            rot += 0.0001f;
         } 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            rot += 0.0001f;
+            rot -= 0.0001f;
+        }
+
+        static float roty = 0.0f;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+            roty += 0.0005f;
+        }
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+            roty -= 0.0005f;
         }
 
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
@@ -303,7 +333,7 @@ int main(int argc, const char** argv) {
         float radius = 3.0f;
         float cam_x = sin(rot) * radius;
         float cam_z = cos(rot) * radius;
-        vec3 eye = { cam_x, 0.0f, cam_z };
+        vec3 eye = { cam_x, roty, cam_z };
         vec3 center = {};
 
         mat4 view;
@@ -316,11 +346,12 @@ int main(int argc, const char** argv) {
 
         glUseProgram(program);
         glUniformMatrix4fv(u_transform, 1, GL_FALSE, (const GLfloat*)trans);
+        glUniform3f(u_lightpos, 4.5f, 3.6f, 4.0f);
         //glUniform2f(u_resolution, 400.0f, 400.0f);
         //glUniform1f(u_time, glfwGetTime());
 
         glBindVertexArray(test_mesh.vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6); // hardcoded
+        glDrawArrays(GL_TRIANGLES, 0, 6 * 6 * enabled); // hardcoded
         //glBindVertexArray(vao);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
 

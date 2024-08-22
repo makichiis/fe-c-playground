@@ -2,6 +2,8 @@
 #include <fe/logger.h>
 #include <fe/err.h>
 
+#include <cglm/cglm.h>
+
 #include <string.h>
 
 struct Chunk Chunk__create(struct Size3D chunk_size) {
@@ -11,7 +13,7 @@ struct Chunk Chunk__create(struct Size3D chunk_size) {
         * chunk.size.x
         * chunk.size.y
         * chunk.size.z;
-    chunk.voxels = malloc(allocsz);
+    chunk.voxels = calloc(chunk.size.x * chunk.size.y * chunk.size.z, sizeof (struct Voxel));
     
     if (!chunk.voxels) {
         FE_FATAL("Could not allocate %lu bytes for voxel chunk.", allocsz); 
@@ -79,8 +81,50 @@ static struct vc__mesh_vertex vc_vverts[] = {
     { 0.f, 0.f, 0.f },
     { 0.f, 1.f, 0.f },
 
+    /*{ 1.f, 1.f, 0.f },
+    { 1.f, 0.f, 0.f },
+    { 1.f, 0.f, -1.f },
+    { 1.f, 0.f, -1.f },
+    { 1.f, 1.f, -1.f },
+    { 1.f, 1.f, 0.f },*/
 
+    { 1.f, 1.f, 0.f },
+    { 1.f, 1.f, 1.f },
+    { 1.f, 0.f, 1.f },
+    { 1.f, 0.f, 1.f },
+    { 1.f, 0.f, 0.f },
+    { 1.f, 1.f, 0.f },
+
+    { 1.f, 1.f, 1.f },
+    { 0.f, 1.f, 1.f },
+    { 0.f, 0.f, 1.f },
+    { 0.f, 0.f, 1.f },
+    { 1.f, 0.f, 1.f },
+    { 1.f, 1.f, 1.f },
+
+    { 0.f, 1.f, 1.f },
+    { 0.f, 1.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 0.f },
+    { 0.f, 0.f, 1.f },
+    { 0.f, 1.f, 1.f },
+
+    { 0.f, 1.f, 1.f },
+    { 1.f, 1.f, 1.f },
+    { 1.f, 1.f, 0.f },
+    { 1.f, 1.f, 0.f },
+    { 0.f, 1.f, 0.f },
+    { 0.f, 1.f, 1.f },
+
+    { 0.f, 0.f, 1.f },
+    { 0.f, 0.f, 0.f },
+    { 1.f, 0.f, 0.f },
+    { 1.f, 0.f, 0.f },
+    { 1.f, 0.f, 1.f },
+    { 0.f, 0.f, 1.f }
 };
+
+#define VC__MV_ELEMS (sizeof vc_vverts / sizeof (struct vc__mesh_vertex))
 
 // TODO: Make way to pass relational chunks/faces to perform culling of 
 // outwardly-facing but still-hidden faces. Future concern.
@@ -92,7 +136,7 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
     verts.len = 0ULL;
     verts.data = calloc(verts.cap, sizeof *verts.data);
 
-    //float scale = (float)chunk->scale;
+    float scale = (float)chunk->scale;
 
     if (!verts.data) {
         FE_FATAL("Failed to allocate %ld bytes for vertices. Exiting.", 
@@ -108,14 +152,32 @@ struct vc__float_verts_t vc__create_verts_dumb_naive(
         if (!chunk->voxels[i].enabled)
             continue;
 
-        //struct Size3D pos = Chunk_get_iaspos(chunk, i);
+        struct Size3D pos = Chunk_get_iaspos(chunk, i);
 
         // vert = (pos_3v * scale + vpos_3v)
         // "local voxel pos times scale plus local chunk pos"
 
         // TODO: Multiply by scale, shift by local chunk coord
-        memcpy(verts.data + verts.len, vc_vverts, sizeof vc_vverts);
-        verts.len += 18;
+
+        struct vc__mesh_vertex transverts[VC__MV_ELEMS] = {};
+        memcpy(transverts, vc_vverts, sizeof vc_vverts);
+
+        vec3 locvec = { (float)pos.x, (float)pos.y, (float)pos.z };
+
+        for (int i = 0; i < VC__MV_ELEMS; ++i) {
+            //glm_vec3_add((float*)&transverts[i], locvec, (float*)&transverts[i]);
+            transverts[i].x += pos.x;
+            transverts[i].y += pos.y;
+            transverts[i].z += pos.z;
+
+            transverts[i].x *= scale;
+            transverts[i].y *= scale;
+            transverts[i].z *= scale;
+        }
+
+        memcpy(verts.data + verts.len, transverts, sizeof vc_vverts);
+        //verts.len += 18 * 4;
+        verts.len += sizeof (vc_vverts) / sizeof vc_vverts[0] * 3;
     }
 
     return verts;
