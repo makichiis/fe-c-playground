@@ -20,6 +20,8 @@
 #include <fe/logger.h>
 #include <fe/err.h>
 
+#include <demo/noise1234.h>
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,7 +65,7 @@ static mat4 projection;
 void glfw_framebuffer_size_callback(GLFWwindow* window, int x, int y) {
     glViewport(0, 0, x, y);
     glm_mat4_identity(projection);
-    glm_perspective(glm_rad(60.0f), (float)x/(float)y, 1, 100, projection);
+    glm_perspective(glm_rad(60.0f), (float)x/(float)y, 1, 10000, projection);
 }
 
 // TODO: Re-research event subscriber pattern for glfw et al. event handling 
@@ -251,14 +253,31 @@ int main(int argc, const char** argv) {
     //base_chunk.scale = 0.25;
     //struct ChunkMesh base_mesh = ChunkMesh__from_chunk(&base_chunk);
 
-    struct Chunk test = Chunk__create((struct Size3D){ 4, 4, 2 });
-    test.scale = 0.125f;
+    /*struct Chunk test = Chunk__create((struct Size3D){ 4, 4, 2 });
+    test.scale = 0.5f;
     test.voxels[0].enabled = true;
     test.voxels[1].enabled = true;
     test.voxels[2].enabled = true;
     test.voxels[3].enabled = true;
     test.voxels[4].enabled = true;
-    test.voxels[20].enabled = true;
+    test.voxels[20].enabled = true;*/ 
+
+    struct Chunk test = Chunk__create((struct Size3D){ 128, 128, 128 });
+    for (size_t i = 0; i < 128 * 128 * 128; ++i) {
+        struct Size3D coord = Chunk_get_iaspos(&test, i);
+
+        //printf("%d %d %d\n", coord.x, coord.y, coord.z);
+
+        double noise = 0.0;
+
+        noise = noise3((float)coord.x / 10., 
+                       (float)coord.y / 10., 
+                       (float)coord.z / 10.);
+
+        //printf("%.2lf ", noise);
+        if (noise >= 0.16) test.voxels[i].enabled = true;
+    } //puts("");
+
     //struct Size3D p = Chunk_get_iaspos(&test, 30);
     //FE_DEBUG("idx 30 for chunk (4, 4, 2) is in pos %u %u %u\n", p.x, p.y, p.z);
 
@@ -267,22 +286,11 @@ int main(int argc, const char** argv) {
     // initialize camera position matrix 
     
     glm_mat4_identity(projection);
-    glm_perspective(glm_rad(60.0f), 400.0/400.0, 1, 100, projection);
+    glm_perspective(glm_rad(60.0f), 400.0/400.0, 1, 100000, projection);
 
-    vec3 camera_pos = { 0.0f, 0.0f, 3.0f };
-    vec3 camera_target = { 0.0f, 0.0f, 0.0f };
-
-    vec3 camera_direction;
-    glm_vec3_sub(camera_pos, camera_target, camera_direction);
-    glm_vec3_normalize(camera_direction);
-
-    vec3 up = { 0.0f, 1.0f, 0.0f };
-    vec3 camera_right;
-    glm_cross(up, camera_direction, camera_right);
-    glm_normalize(camera_right);
-
-    vec3 camera_up;
-    glm_cross(camera_direction, camera_right, camera_up);
+    vec3 camera_pos = { 0.0f, 0.0f, -3.0f };
+    float pitch = 0.f;
+    float yaw = 0.f;
     
     glUseProgram(program);
     GLuint u_transform = glGetUniformLocation(program, "u_transform");
@@ -309,36 +317,39 @@ int main(int argc, const char** argv) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
         
-        static float rot = 0.0f;
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            rot += 0.0001f;
-        } 
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            rot -= 0.0001f;
-        }
-
-        static float roty = 0.0f;
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            roty += 0.0005f;
-        }
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            roty -= 0.0005f;
-        }
-
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         else if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-        float radius = 3.0f;
-        float cam_x = sin(rot) * radius;
-        float cam_z = cos(rot) * radius;
-        vec3 eye = { cam_x, roty, cam_z };
-        vec3 center = {};
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+            yaw += 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+            yaw -= 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+            pitch += 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+            pitch -= 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            camera_pos[2] -= 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            camera_pos[2] += 0.1f;
+
+        vec3 direction = {};
+        direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
+        direction[1] = sin(glm_rad(pitch));
+        direction[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
+        vec3 camera_front;
+        glm_vec3_copy(direction, camera_front);
+        glm_normalize(camera_front);
+
+        vec3 camera_up = { 0.f, 1.f, 0.f };
+        vec3 camera_trans;
+        glm_vec3_add(camera_pos, camera_front, camera_trans);
 
         mat4 view;
         glm_mat4_identity(view);
-        glm_lookat(eye, center, up, view);
+        glm_lookat(camera_pos, camera_trans, camera_up, view);
 
         mat4 trans;
         glm_mat4_identity(trans);
@@ -346,7 +357,7 @@ int main(int argc, const char** argv) {
 
         glUseProgram(program);
         glUniformMatrix4fv(u_transform, 1, GL_FALSE, (const GLfloat*)trans);
-        glUniform3f(u_lightpos, 4.5f, 3.6f, 4.0f);
+        glUniform3f(u_lightpos, 4.5f, 3.6f, 0.0f);
         //glUniform2f(u_resolution, 400.0f, 400.0f);
         //glUniform1f(u_time, glfwGetTime());
 

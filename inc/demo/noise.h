@@ -1,3 +1,5 @@
+#ifndef DEMO_NOISE_H 
+#define DEMO_NOISE_H
 #include <math.h>
 
 // LUT
@@ -18,15 +20,15 @@ static int Noise_p[512] = {
     151
 };
 
-inline double Noise_fade(double t) {
+static inline double Noise_fade(double t) {
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-inline double Noise_lerp(double t, double a, double b) {
+static inline double Noise_lerp(double t, double a, double b) {
     return a + t * (b - a);
 }
 
-inline double Noise_grad(int hash, double x, double y, double z) {
+static inline double Noise_grad(int hash, double x, double y, double z) {
     int h = hash & 15;
     double u = h < 8 ? x : y, v = h < 4 ? y : h == 12 || h == 14 ? x : z;
     return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
@@ -72,3 +74,5 @@ double Noise_perlin3D(double x, double y, double z) {
         Noise_lerp(v, Noise_lerp(u, Noise_grad(Noise_p[AA + 1], x, y, z - 1), Noise_grad(Noise_p[BA + 1], x - 1, y, z - 1)),
         Noise_lerp(u, Noise_grad(Noise_p[AB + 1], x, y - 1, z - 1), Noise_grad(Noise_p[BB + 1], x - 1, y - 1, z - 1))));
 }
+
+#endif 
