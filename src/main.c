@@ -323,18 +323,14 @@ int main(int argc, const char** argv) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            yaw += 0.1f;
+            yaw -= 1.f;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            yaw -= 0.1f;
+            yaw += 1.f;
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-            pitch += 0.1f;
+            pitch += 1.f;
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-            pitch -= 0.1f;
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-            camera_pos[2] -= 0.1f;
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-            camera_pos[2] += 0.1f;
-
+            pitch -= 1.f;
+        
         vec3 direction = {};
         direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
         direction[1] = sin(glm_rad(pitch));
@@ -342,6 +338,11 @@ int main(int argc, const char** argv) {
         vec3 camera_front;
         glm_vec3_copy(direction, camera_front);
         glm_normalize(camera_front);
+        
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+            glm_vec3_add(camera_pos, camera_front, camera_pos);
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+            glm_vec3_sub(camera_pos, camera_front, camera_pos);
 
         vec3 camera_up = { 0.f, 1.f, 0.f };
         vec3 camera_trans;
