@@ -23,9 +23,22 @@ struct Chunk {
     struct Voxel* voxels;
 };
 
+struct vc__mesh_vertex {
+    float x;
+    float y;
+    float z;
+} __attribute__((packed)); // we are copying bytes directly 
+
+struct vc__float_verts_t {
+    size_t cap;
+    size_t len;
+    float* data;
+};
+
 struct ChunkMesh {
     GLuint vao;
     GLuint vbo;
+    struct vc__float_verts_t verts;
 };
 
 /** 

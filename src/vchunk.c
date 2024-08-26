@@ -26,7 +26,7 @@ struct Chunk Chunk__create(struct Size3D chunk_size) {
 void Chunk_destroy(struct Chunk* chunk) {
     if (!chunk) {
         // TODO: Mention caller (via frame pointer ?) ?
-        // https://stackoverflow.com/a/64291642
+    // https://stackoverflow.com/a/64291642
         FE_WARNING("Warning: NULL chunk passed to `Chunk_destroy`");
         return;
     }
@@ -44,12 +44,6 @@ struct Size3D Chunk_get_iaspos(struct Chunk* chunk, size_t idx) {
     return (struct Size3D){ ix, iy, iz };
 }
 
-struct vc__float_verts_t {
-    size_t cap;
-    size_t len;
-    float* data;
-};
-
 // Verts per voxel = verts per side * 6 
 // verts pre side = verts per polygon * polygons per side 
 // verts per polygon = 3 
@@ -66,11 +60,6 @@ struct vc__float_verts_t {
     * POLYGONS_PER_FACE\
     * FACES_PER_VOXEL)
 
-struct vc__mesh_vertex {
-    float x;
-    float y;
-    float z;
-} __attribute__((packed)); // we are copying bytes directly 
 
 // CLOCKWISE RENDERING ALWAYS
 static struct vc__mesh_vertex vc_vverts[] = {
@@ -194,6 +183,7 @@ struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     struct ChunkMesh mesh = {};
 
     struct vc__float_verts_t verts = vc__create_verts_dumb_naive(chunk);
+    mesh.verts = verts;
 
     glGenVertexArrays(1, &mesh.vao);
     glGenBuffers(1, &mesh.vbo);

@@ -262,8 +262,8 @@ int main(int argc, const char** argv) {
     test.voxels[4].enabled = true;
     test.voxels[20].enabled = true;*/ 
 
-    struct Chunk test = Chunk__create((struct Size3D){ 128, 128, 128 });
-    for (size_t i = 0; i < 128 * 128 * 128; ++i) {
+    struct Chunk test = Chunk__create((struct Size3D){ 16, 16, 16 });
+    for (size_t i = 0; i < 16 * 16 * 16; ++i) {
         struct Size3D coord = Chunk_get_iaspos(&test, i);
 
         //printf("%d %d %d\n", coord.x, coord.y, coord.z);
@@ -323,13 +323,13 @@ int main(int argc, const char** argv) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            yaw -= 1.f;
+            yaw -= .01f;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            yaw += 1.f;
+            yaw += .01f;
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-            pitch += 1.f;
+            pitch += .01f;
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-            pitch -= 1.f;
+            pitch -= .01f;
         
         vec3 direction = {};
         direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
@@ -338,6 +338,9 @@ int main(int argc, const char** argv) {
         vec3 camera_front;
         glm_vec3_copy(direction, camera_front);
         glm_normalize(camera_front);
+        
+        vec3 mul = { 0.01f, 0.01f, 0.01f };
+        glm_vec3_mul(camera_front, mul, camera_front);
         
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             glm_vec3_add(camera_pos, camera_front, camera_pos);
@@ -363,7 +366,7 @@ int main(int argc, const char** argv) {
         //glUniform1f(u_time, glfwGetTime());
 
         glBindVertexArray(test_mesh.vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6 * 6 * enabled); // hardcoded
+        glDrawArrays(GL_TRIANGLES, 0, test_mesh.verts.len); // hardcoded
         //glBindVertexArray(vao);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
 
