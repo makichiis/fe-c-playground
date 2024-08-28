@@ -203,3 +203,6 @@ struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     return mesh;
 }
 
+size_t ChunkMesh_polygon_count(struct ChunkMesh* mesh) {
+    return mesh->verts.len;
+}

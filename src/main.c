@@ -366,7 +366,7 @@ int main(int argc, const char** argv) {
         //glUniform1f(u_time, glfwGetTime());
 
         glBindVertexArray(test_mesh.vao);
-        glDrawArrays(GL_TRIANGLES, 0, test_mesh.verts.len); // hardcoded
+        glDrawArrays(GL_TRIANGLES, 0, ChunkMesh_polygon_count(&test_mesh));
         //glBindVertexArray(vao);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
 

@@ -70,4 +70,11 @@ struct Size3D Chunk_get_iaspos(struct Chunk* chunk, size_t idx);
  */
 struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk);
 
+/**
+ * @brief returns the number of polygons in this chunk mesh.
+ * Internally returns mesh->verts.len, but this is used in 
+ * case of implementation change as well as for brevity.
+ */ 
+size_t ChunkMesh_polygon_count(struct ChunkMesh* mesh);
+
 #endif 
