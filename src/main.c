@@ -376,6 +376,7 @@ int main(int argc, const char** argv) {
 
     //Chunk_destroy(&base_chunk);
     Chunk_destroy(&test);
+    free(test_mesh.verts.data);
     glfwTerminate();
 }
 

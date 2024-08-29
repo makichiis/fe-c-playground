@@ -199,7 +199,7 @@ struct ChunkMesh ChunkMesh__from_chunk(struct Chunk* chunk) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    vc__float_verts_destroy(&verts);
+    //vc__float_verts_destroy(&verts);
     return mesh;
 }
 
