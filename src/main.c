@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <sys/time.h>
 #include <linux/limits.h>
 
 #define LOG_BAR "--------------------------------------------"
@@ -312,24 +313,38 @@ int main(int argc, const char** argv) {
         enabled += test.voxels[i].enabled ? 1 : 0;
     }
 
+    float delta_time = 0.0f;
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClearColor(0.3f, 0.3f, 0.35f, 1.0f); // cool editor bg
         
+        struct timeval current_time;
+        gettimeofday(&current_time, NULL);
+        float frame_time_start = current_time.tv_sec * 1000000 + current_time.tv_usec;
+
+        usleep(10000);
+
         if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         else if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            yaw -= .01f;
+            //yaw -= .01f;
+            yaw -= 1.0f * delta_time;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            yaw += .01f;
+            //yaw += .01f;
+            yaw += 1.0f * delta_time;
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-            pitch += .01f;
+            //pitch += .01f;
+            pitch += 1.0f * delta_time;
         if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
-            pitch -= .01f;
+            //pitch -= .01f;
+            pitch -= 1.0f * delta_time;
+        
+        FE_WARNING("%f\n", delta_time);
         
         vec3 direction = {};
         direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
@@ -369,9 +384,17 @@ int main(int argc, const char** argv) {
         glDrawArrays(GL_TRIANGLES, 0, ChunkMesh_polygon_count(&test_mesh));
         //glBindVertexArray(vao);
         //glDrawArrays(GL_TRIANGLES, 0, 3);
+        
+        
 
         glfwPollEvents();
         glfwSwapBuffers(window);
+    
+        struct timeval ct;
+        gettimeofday(&ct, NULL);
+        float frame_time_end = ct.tv_sec * 1000000 + ct.tv_usec;
+        FE_WARNING("%f - %f = %f", frame_time_end, frame_time_start, frame_time_end - frame_time_start);
+        delta_time = frame_time_end - frame_time_start;
     }
 
     //Chunk_destroy(&base_chunk);
