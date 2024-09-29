@@ -345,8 +345,6 @@ int main(int argc, const char** argv) {
             //pitch -= .01f;
             pitch -= pitch_mult * delta_time;
         
-        FE_WARNING("%f", delta_time);
-        
         vec3 direction = {};
         direction[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
         direction[1] = sin(glm_rad(pitch));
